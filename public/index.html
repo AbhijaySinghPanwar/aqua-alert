@@ -161,7 +161,7 @@ body{font-family:'DM Sans',sans-serif}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 // ─── Config ────────────────────────────────────────────────────────────────
-const WS_URL = 'ws://localhost:3000'; // ← change this to your server IP
+const WS_URL =window.location.protocol === 'https:'? `wss://${window.location.host}`: `ws://${window.location.host}`; // ← change this to your server IP
 const RECONNECT_DELAY_MS = 3000;
 const MAX_POINTS = 30;
 
@@ -312,11 +312,12 @@ function connectWebSocket() {
   };
 
   ws.onmessage = (event) => {
-    try {
-      const { tds, ph, turb } = JSON.parse(event.data);
-      if (tds !== undefined && ph !== undefined && turb !== undefined) {
-        updateDashboard(tds, ph, turb);
-      }
+      try {
+    const data = JSON.parse(event.data);
+
+    if (data.tds !== undefined) {
+      updateDashboard(data.tds, data.ph, data.turb);
+    }
     } catch (e) {
       console.warn('Bad message from server:', event.data);
     }

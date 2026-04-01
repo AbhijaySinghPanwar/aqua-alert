@@ -11,17 +11,17 @@ app.use(express.static('public')); // serve dashboard
 // ✅ Create HTTP server
 const server = http.createServer(app);
 
-// ✅ Attach WebSocket server
+// ✅ Attach WebSocket server (IMPORTANT)
 const wss = new WebSocketServer({ noServer: true });
 
-// 🔥 IMPORTANT FIX (for ngrok + websocket)
+// 🔥 REQUIRED for Render / ngrok / WebSocket
 server.on('upgrade', (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (ws) => {
     wss.emit('connection', ws, request);
   });
 });
 
-// (optional but useful)
+// ✅ Track connections
 wss.on('connection', (ws) => {
   console.log('🔌 WebSocket client connected');
 
@@ -30,7 +30,7 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Twilio client
+// ✅ Twilio client
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -39,20 +39,26 @@ const client = twilio(
 let lastAlertSent = 0;
 const ALERT_COOLDOWN_MS = 5 * 60 * 1000;
 
-// ESP32 sends data here
+// ✅ ESP32 sends data here
 app.post('/data', (req, res) => {
   const { tds, ph, turb, alert } = req.body;
 
   console.log("📩 Data received:", tds, ph, turb, alert);
 
-  // ✅ Broadcast to frontend
-  const payload = JSON.stringify({ tds, ph, turb, alert, ts: Date.now() });
-
-  wss.clients.forEach(ws => {
-    if (ws.readyState === ws.OPEN) {
-      ws.send(payload);
-    }
+  const payload = JSON.stringify({
+    tds,
+    ph,
+    turb,
+    alert,
+    ts: Date.now()
   });
+
+  // 🔥 FIX: safer WebSocket broadcast
+  wss.clients.forEach((wsClient) => {
+  if (wsClient.readyState === 1) {
+    wsClient.send(payload);
+  }
+});
 
   // ✅ WhatsApp alert (optional)
   if (alert && Date.now() - lastAlertSent > ALERT_COOLDOWN_MS) {
@@ -69,7 +75,13 @@ TDS: ${tds} | pH: ${ph} | Turbidity: ${turb}`
   res.sendStatus(200);
 });
 
-// Start server
-server.listen(3000, () => {
-  console.log('🚀 Server running on http://localhost:3000');
+// ✅ Root route (VERY IMPORTANT)
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+// ✅ Start server (Render compatible)
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
