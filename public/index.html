@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aqua-Alert Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif}
+.dash{padding:16px;background:var(--color-background-tertiary);min-height:600px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 16px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:#0C447C;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;fill:none;stroke:#E6F1FB;stroke-width:2}
+.logo-text{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.logo-sub{font-size:11px;color:var(--color-text-secondary)}
+.header-right{display:flex;align-items:center;gap:10px}
+.ws-indicator{font-size:11px;padding:4px 8px;border-radius:20px;font-weight:500;display:flex;align-items:center;gap:5px}
+.ws-connected{background:#d1fae5;color:#065f46}
+.ws-disconnected{background:#fee2e2;color:#991b1b}
+.ws-connecting{background:#fef3c7;color:#92400e}
+.ws-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.status-pill{display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 10px;border-radius:20px;font-weight:500}
+.status-ok{background:var(--color-background-success);color:var(--color-text-success)}
+.status-alert{background:var(--color-background-danger);color:var(--color-text-danger)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.metric-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;position:relative;overflow:hidden}
+.metric-label{font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.metric-val{font-family:'Share Tech Mono',monospace;font-size:26px;font-weight:400;color:var(--color-text-primary);line-height:1}
+.metric-unit{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.metric-dev{font-size:11px;margin-top:6px;padding:2px 7px;border-radius:4px;display:inline-block;font-weight:500}
+.dev-ok{background:var(--color-background-success);color:var(--color-text-success)}
+.dev-warn{background:var(--color-background-warning);color:var(--color-text-warning)}
+.dev-bad{background:var(--color-background-danger);color:var(--color-text-danger)}
+.metric-bar{position:absolute;bottom:0;left:0;height:3px;background:#185FA5;transition:width 0.5s ease}
+.chart-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;margin-bottom:12px}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.chart-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.legend{display:flex;gap:14px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+.alerts-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
+.panel-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.alert-log{display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto}
+.alert-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);font-size:12px}
+.alert-item.danger{background:var(--color-background-danger);border:0.5px solid var(--color-border-danger)}
+.alert-item.ok{background:var(--color-background-success);border:0.5px solid var(--color-border-success)}
+.alert-item.warn{background:var(--color-background-warning);border:0.5px solid var(--color-border-warning, #f59e0b)}
+.alert-time{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--color-text-secondary);flex-shrink:0;margin-top:1px}
+.alert-msg{color:var(--color-text-primary);line-height:1.4}
+.mobile-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;margin-top:12px}
+.notif-phone{border:0.5px solid var(--color-border-secondary);border-radius:12px;padding:10px 12px;margin-top:8px;display:flex;gap:10px;align-items:flex-start}
+.notif-app-icon{width:32px;height:32px;border-radius:8px;background:#0C447C;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:500}
+.notif-content{flex:1}
+.notif-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.notif-app-name{font-size:11px;font-weight:500;color:var(--color-text-secondary)}
+.notif-time-small{font-size:10px;color:var(--color-text-tertiary)}
+.notif-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.notif-body{font-size:11px;color:var(--color-text-secondary);margin-top:1px;line-height:1.4}
+.send-btn{margin-top:10px;display:flex;gap:8px}
+.baseline-btn{font-size:12px;padding:6px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer}
+.baseline-btn:hover{background:var(--color-background-tertiary)}
+</style>
+</head>
+<body>
+
+<div class="dash">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 9 2 14a10 10 0 0020 0C22 9 17.5 2 12 2z"/><path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">Aqua-Alert</div>
+        <div class="logo-sub">Residential Water Quality Monitor</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="ws-indicator" class="ws-indicator ws-connecting">
+        <span class="ws-dot"></span>
+        <span id="ws-status-text">Connecting…</span>
+      </div>
+      <div id="status-pill" class="status-pill status-ok">
+        <span class="dot"></span>
+        <span id="status-text">All Clear</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-label">TDS</div>
+      <div class="metric-val" id="tds-val">---</div>
+      <div class="metric-unit">ppm (raw ADC)</div>
+      <div id="tds-dev" class="metric-dev dev-ok">waiting…</div>
+      <div class="metric-bar" id="tds-bar" style="width:0%"></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">pH Level</div>
+      <div class="metric-val" id="ph-val">---</div>
+      <div class="metric-unit">raw ADC unit</div>
+      <div id="ph-dev" class="metric-dev dev-ok">waiting…</div>
+      <div class="metric-bar" id="ph-bar" style="width:0%;background:#1D9E75"></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Turbidity</div>
+      <div class="metric-val" id="turb-val">---</div>
+      <div class="metric-unit">NTU (raw ADC)</div>
+      <div id="turb-dev" class="metric-dev dev-ok">waiting…</div>
+      <div class="metric-bar" id="turb-bar" style="width:0%;background:#BA7517"></div>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-header">
+      <div class="chart-title">Live sensor readings (last 30s)</div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#185FA5"></div>TDS</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>pH</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#BA7517"></div>Turbidity</div>
+      </div>
+    </div>
+    <div style="position:relative;height:180px">
+      <canvas id="liveChart"></canvas>
+    </div>
+  </div>
+
+  <div class="alerts-panel">
+    <div class="panel-title">
+      Alert log
+      <button class="baseline-btn" onclick="resetBaseline()">Reset baseline</button>
+    </div>
+    <div class="alert-log" id="alert-log">
+      <div class="alert-item ok">
+        <div class="alert-time">--:--:--</div>
+        <div class="alert-msg">System started. Connecting to ESP32…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-section">
+    <div class="panel-title">Mobile notification preview</div>
+    <div class="notif-phone" id="notif-card" style="display:none">
+      <div class="notif-app-icon">A</div>
+      <div class="notif-content">
+        <div class="notif-top">
+          <span class="notif-app-name">Aqua-Alert</span>
+          <span class="notif-time-small" id="notif-time">now</span>
+        </div>
+        <div class="notif-title" id="notif-title">Water Quality Alert</div>
+        <div class="notif-body" id="notif-body">TDS deviation detected.</div>
+      </div>
+    </div>
+    <div id="notif-placeholder" style="font-size:12px;color:var(--color-text-tertiary);margin-top:8px">No alerts yet. Notifications will appear here when water quality degrades.</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ─── Config ────────────────────────────────────────────────────────────────
+const WS_URL = 'ws://localhost:3000'; // ← change this to your server IP
+const RECONNECT_DELAY_MS = 3000;
+const MAX_POINTS = 30;
+
+// ─── Chart setup ───────────────────────────────────────────────────────────
+const labels = [];
+const tdsData = [], phData = [], turbData = [];
+
+const ctx = document.getElementById('liveChart').getContext('2d');
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { label: 'TDS',       data: tdsData,  borderColor: '#185FA5', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
+      { label: 'pH',        data: phData,   borderColor: '#1D9E75', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
+      { label: 'Turbidity', data: turbData, borderColor: '#BA7517', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 300 },
+    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, bodyFont: { family: 'Share Tech Mono' } } },
+    scales: {
+      x: { ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+      y: { ticks: { font: { size: 10 }, maxTicksLimit: 5 }, grid: { color: 'rgba(128,128,128,0.1)' } }
+    }
+  }
+});
+
+// ─── State ─────────────────────────────────────────────────────────────────
+let baseline = null;
+let lastAlertState = false;
+
+// ─── UI helpers ────────────────────────────────────────────────────────────
+function addLog(msg, type) {
+  const log = document.getElementById('alert-log');
+  const t = new Date().toTimeString().slice(0, 8);
+  const el = document.createElement('div');
+  el.className = 'alert-item ' + type;
+  el.innerHTML = `<div class="alert-time">${t}</div><div class="alert-msg">${msg}</div>`;
+  log.insertBefore(el, log.firstChild);
+  while (log.children.length > 8) log.removeChild(log.lastChild);
+}
+
+function devClass(dev) {
+  if (dev < 10) return 'dev-ok';
+  if (dev < 20) return 'dev-warn';
+  return 'dev-bad';
+}
+
+function resetBaseline() {
+  baseline = null;
+  addLog('Baseline reset. Will recalibrate on next reading.', 'ok');
+}
+
+function showMobileNotif(tds, ph, turb, devs) {
+  document.getElementById('notif-card').style.display = 'flex';
+  document.getElementById('notif-placeholder').style.display = 'none';
+  document.getElementById('notif-time').textContent = new Date().toTimeString().slice(0, 5);
+  const parts = [];
+  if (devs.tds  > 20) parts.push(`TDS +${devs.tds.toFixed(0)}%`);
+  if (devs.ph   > 20) parts.push(`pH +${devs.ph.toFixed(0)}%`);
+  if (devs.turb > 20) parts.push(`Turbidity +${devs.turb.toFixed(0)}%`);
+  document.getElementById('notif-title').textContent = 'Water Quality Alert';
+  document.getElementById('notif-body').textContent  = `${parts.join(', ')} deviation detected. TDS: ${tds} | pH: ${ph} | Turb: ${turb}`;
+}
+
+function setWsStatus(state) {
+  const ind  = document.getElementById('ws-indicator');
+  const text = document.getElementById('ws-status-text');
+  ind.className = 'ws-indicator';
+  if (state === 'connected')    { ind.classList.add('ws-connected');    text.textContent = 'Live'; }
+  else if (state === 'disconnected') { ind.classList.add('ws-disconnected'); text.textContent = 'Disconnected'; }
+  else                          { ind.classList.add('ws-connecting');   text.textContent = 'Connecting…'; }
+}
+
+// ─── Core update — called with real data from WebSocket ────────────────────
+function updateDashboard(tds, ph, turb) {
+  const t = new Date().toTimeString().slice(0, 8);
+
+  // Establish baseline on first reading
+  if (!baseline) {
+    baseline = { tds, ph, turb };
+    addLog(`Baseline set — TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'ok');
+  }
+
+  const devTds  = Math.abs(tds  - baseline.tds)  * 100 / baseline.tds;
+  const devPh   = Math.abs(ph   - baseline.ph)   * 100 / baseline.ph;
+  const devTurb = Math.abs(turb - baseline.turb) * 100 / baseline.turb;
+
+  // Metric cards
+  document.getElementById('tds-val').textContent  = tds;
+  document.getElementById('ph-val').textContent   = ph;
+  document.getElementById('turb-val').textContent = turb;
+
+  document.getElementById('tds-dev').textContent  = devTds  < 1 ? 'baseline' : `+${devTds.toFixed(1)}%  dev`;
+  document.getElementById('ph-dev').textContent   = devPh   < 1 ? 'baseline' : `+${devPh.toFixed(1)}% dev`;
+  document.getElementById('turb-dev').textContent = devTurb < 1 ? 'baseline' : `+${devTurb.toFixed(1)}% dev`;
+
+  document.getElementById('tds-dev').className  = 'metric-dev ' + devClass(devTds);
+  document.getElementById('ph-dev').className   = 'metric-dev ' + devClass(devPh);
+  document.getElementById('turb-dev').className = 'metric-dev ' + devClass(devTurb);
+
+  document.getElementById('tds-bar').style.width  = Math.min(devTds  * 2, 100) + '%';
+  document.getElementById('ph-bar').style.width   = Math.min(devPh   * 2, 100) + '%';
+  document.getElementById('turb-bar').style.width = Math.min(devTurb * 2, 100) + '%';
+
+  // Status pill
+  const isAlert = devTds > 20 || devPh > 20 || devTurb > 20;
+  const pill = document.getElementById('status-pill');
+  if (isAlert) {
+    pill.className = 'status-pill status-alert';
+    document.getElementById('status-text').textContent = 'Quality Alert';
+    if (!lastAlertState) {
+      addLog(`ALERT — TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'danger');
+      showMobileNotif(tds, ph, turb, { tds: devTds, ph: devPh, turb: devTurb });
+    }
+  } else {
+    pill.className = 'status-pill status-ok';
+    document.getElementById('status-text').textContent = 'All Clear';
+    if (lastAlertState) addLog('Water quality returned to normal.', 'ok');
+  }
+  lastAlertState = isAlert;
+
+  // Chart
+  labels.push(t);
+  tdsData.push(tds);
+  phData.push(ph);
+  turbData.push(turb);
+  if (labels.length > MAX_POINTS) { labels.shift(); tdsData.shift(); phData.shift(); turbData.shift(); }
+  chart.update('none');
+}
+
+// ─── WebSocket with auto-reconnect ─────────────────────────────────────────
+let ws = null;
+let reconnectTimer = null;
+
+function connectWebSocket() {
+  setWsStatus('connecting');
+
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    setWsStatus('connected');
+    addLog('Connected to ESP32 server.', 'ok');
+    clearTimeout(reconnectTimer);
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const { tds, ph, turb } = JSON.parse(event.data);
+      if (tds !== undefined && ph !== undefined && turb !== undefined) {
+        updateDashboard(tds, ph, turb);
+      }
+    } catch (e) {
+      console.warn('Bad message from server:', event.data);
+    }
+  };
+
+  ws.onclose = () => {
+    setWsStatus('disconnected');
+    addLog('Connection lost. Reconnecting in 3s…', 'warn');
+    reconnectTimer = setTimeout(connectWebSocket, RECONNECT_DELAY_MS);
+  };
+
+  ws.onerror = (err) => {
+    console.error('WebSocket error:', err);
+    ws.close(); // triggers onclose → reconnect
+  };
+}
+
+// ─── Start ─────────────────────────────────────────────────────────────────
+connectWebSocket();
+</script>
+</body>
+</html>
