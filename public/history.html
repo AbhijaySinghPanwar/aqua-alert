@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>History Graph</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body style="font-family:sans-serif; padding:20px;">
+
+<h2>📊 Water Quality History</h2>
+
+<canvas id="chart" height="100"></canvas>
+
+<script>
+const ctx = document.getElementById('chart').getContext('2d');
+
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      { label: 'TDS', borderWidth: 2, data: [] },
+      { label: 'pH', borderWidth: 2, data: [] },
+      { label: 'Turbidity', borderWidth: 2, data: [] }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+
+// 🔥 Load history from backend
+fetch('/history')
+  .then(res => res.json())
+  .then(data => {
+    data.forEach((d, i) => {
+      chart.data.labels.push(i);
+
+      chart.data.datasets[0].data.push(d.tds);
+      chart.data.datasets[1].data.push(d.ph);
+      chart.data.datasets[2].data.push(d.turb);
+    });
+
+    chart.update();
+  })
+  .catch(err => console.error(err));
+</script>
+
+</body>
+</html>

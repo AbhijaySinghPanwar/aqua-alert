@@ -69,27 +69,50 @@ body{font-family:'DM Sans',sans-serif}
 
 <div class="dash">
   <div class="header">
+    
     <div class="logo">
       <div class="logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 9 2 14a10 10 0 0020 0C22 9 17.5 2 12 2z"/><path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.5 2 2 9 2 14a10 10 0 0020 0C22 9 17.5 2 12 2z"/>
+          <path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke-linecap="round"/>
+        </svg>
       </div>
       <div>
         <div class="logo-text">Aqua-Alert</div>
         <div class="logo-sub">Residential Water Quality Monitor</div>
       </div>
     </div>
+
+    <!-- ✅ RIGHT SIDE -->
     <div class="header-right">
+
       <div id="ws-indicator" class="ws-indicator ws-connecting">
         <span class="ws-dot"></span>
         <span id="ws-status-text">Connecting…</span>
       </div>
+
       <div id="status-pill" class="status-pill status-ok">
         <span class="dot"></span>
         <span id="status-text">All Clear</span>
       </div>
-    </div>
-  </div>
 
+      <!-- ✅ BUTTON -->
+      <button onclick="openHistory()" style="
+        padding:8px 12px;
+        background:#2563eb;
+        color:white;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        margin-left:10px;
+      ">
+        History
+      </button>
+
+    </div>
+
+  </div>
+</div>
   <div class="metrics">
     <div class="metric-card">
       <div class="metric-label">TDS</div>
@@ -216,6 +239,9 @@ function devClass(dev) {
 function resetBaseline() {
   baseline = null;
   addLog('Baseline reset. Will recalibrate on next reading.', 'ok');
+}
+function openHistory() {
+  window.open('/history.html', '_blank');
 }
 
 function showMobileNotif(tds, ph, turb, devs) {
