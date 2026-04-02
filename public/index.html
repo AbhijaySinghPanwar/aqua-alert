@@ -334,6 +334,15 @@ function connectWebSocket() {
     ws.close(); // triggers onclose → reconnect
   };
 }
+// 🔥 LOAD LAST 100 READINGS (history → graph)
+fetch('/history')
+  .then(res => res.json())
+  .then(data => {
+    data.forEach(d => {
+      updateDashboard(d.tds, d.ph, d.turb);
+    });
+  })
+  .catch(err => console.error('History load failed:', err));
 
 // ─── Start ─────────────────────────────────────────────────────────────────
 connectWebSocket();

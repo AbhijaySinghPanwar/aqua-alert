@@ -6,22 +6,20 @@ const http = require('http');
 
 const app = express();
 app.use(express.json());
-app.use(express.static('public')); // serve dashboard
+app.use(express.static('public'));
 
 // ✅ Create HTTP server
 const server = http.createServer(app);
 
-// ✅ Attach WebSocket server (IMPORTANT)
+// ✅ WebSocket setup
 const wss = new WebSocketServer({ noServer: true });
 
-// 🔥 REQUIRED for Render / ngrok / WebSocket
 server.on('upgrade', (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (ws) => {
     wss.emit('connection', ws, request);
   });
 });
 
-// ✅ Track connections
 wss.on('connection', (ws) => {
   console.log('🔌 WebSocket client connected');
 
@@ -39,28 +37,41 @@ const client = twilio(
 let lastAlertSent = 0;
 const ALERT_COOLDOWN_MS = 5 * 60 * 1000;
 
+// 🔥 NEW: store last 100 readings
+let history = [];
+
 // ✅ ESP32 sends data here
 app.post('/data', (req, res) => {
   const { tds, ph, turb, alert } = req.body;
 
   console.log("📩 Data received:", tds, ph, turb, alert);
 
-  const payload = JSON.stringify({
+  const entry = {
     tds,
     ph,
     turb,
     alert,
     ts: Date.now()
+  };
+
+  // 🔥 SAVE DATA
+  history.push(entry);
+
+  // keep only last 100 entries
+  if (history.length > 100) {
+    history.shift();
+  }
+
+  const payload = JSON.stringify(entry);
+
+  // ✅ WebSocket broadcast
+  wss.clients.forEach((wsClient) => {
+    if (wsClient.readyState === 1) {
+      wsClient.send(payload);
+    }
   });
 
-  // 🔥 FIX: safer WebSocket broadcast
-  wss.clients.forEach((wsClient) => {
-  if (wsClient.readyState === 1) {
-    wsClient.send(payload);
-  }
-});
-
-  // ✅ WhatsApp alert (optional)
+  // ✅ WhatsApp alert
   if (alert && Date.now() - lastAlertSent > ALERT_COOLDOWN_MS) {
     lastAlertSent = Date.now();
 
@@ -75,12 +86,17 @@ TDS: ${tds} | pH: ${ph} | Turbidity: ${turb}`
   res.sendStatus(200);
 });
 
-// ✅ Root route (VERY IMPORTANT)
+// 🔥 NEW: API to get history
+app.get('/history', (req, res) => {
+  res.json(history);
+});
+
+// ✅ Root route
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
-// ✅ Start server (Render compatible)
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
