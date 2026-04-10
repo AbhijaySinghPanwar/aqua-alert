@@ -36,12 +36,11 @@ body{font-family:'DM Sans',sans-serif}
 .dev-warn{background:var(--color-background-warning);color:var(--color-text-warning)}
 .dev-bad{background:var(--color-background-danger);color:var(--color-text-danger)}
 .metric-bar{position:absolute;bottom:0;left:0;height:3px;background:#185FA5;transition:width 0.5s ease}
-.chart-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;margin-bottom:12px}
+.charts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.chart-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px}
 .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .chart-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
-.legend{display:flex;gap:14px}
-.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
-.leg-dot{width:8px;height:8px;border-radius:50%}
+.chart-subtitle{font-size:11px;color:var(--color-text-secondary)}
 .alerts-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
 .panel-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
 .alert-log{display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto}
@@ -63,13 +62,18 @@ body{font-family:'DM Sans',sans-serif}
 .send-btn{margin-top:10px;display:flex;gap:8px}
 .baseline-btn{font-size:12px;padding:6px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer}
 .baseline-btn:hover{background:var(--color-background-tertiary)}
+@media (max-width: 900px){
+  .header{flex-direction:column;align-items:flex-start;gap:12px}
+  .header-right{flex-wrap:wrap}
+  .metrics{grid-template-columns:1fr}
+  .charts-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
 <div class="dash">
   <div class="header">
-    
     <div class="logo">
       <div class="logo-icon">
         <svg viewBox="0 0 24 24">
@@ -83,12 +87,10 @@ body{font-family:'DM Sans',sans-serif}
       </div>
     </div>
 
-    <!-- ✅ RIGHT SIDE -->
     <div class="header-right">
-
       <div id="ws-indicator" class="ws-indicator ws-connecting">
         <span class="ws-dot"></span>
-        <span id="ws-status-text">Connecting…</span>
+        <span id="ws-status-text">Connecting...</span>
       </div>
 
       <div id="status-pill" class="status-pill status-ok">
@@ -96,57 +98,71 @@ body{font-family:'DM Sans',sans-serif}
         <span id="status-text">All Clear</span>
       </div>
 
-      <!-- ✅ BUTTON -->
-      <button onclick="openHistory()" style="
-        padding:8px 12px;
-        background:#2563eb;
-        color:white;
-        border:none;
-        border-radius:6px;
-        cursor:pointer;
-        margin-left:10px;
-      ">
+      <button onclick="openHistory()" style="padding:8px 12px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;margin-left:10px;">
         History
       </button>
-
     </div>
-
   </div>
+
   <div class="metrics">
     <div class="metric-card">
       <div class="metric-label">TDS</div>
       <div class="metric-val" id="tds-val">---</div>
-      <div class="metric-unit">ppm (raw ADC)</div>
-      <div id="tds-dev" class="metric-dev dev-ok">waiting…</div>
+      <div class="metric-unit">ppm</div>
+      <div id="tds-dev" class="metric-dev dev-ok">waiting...</div>
       <div class="metric-bar" id="tds-bar" style="width:0%"></div>
     </div>
     <div class="metric-card">
       <div class="metric-label">pH Level</div>
       <div class="metric-val" id="ph-val">---</div>
-      <div class="metric-unit">raw ADC unit</div>
-      <div id="ph-dev" class="metric-dev dev-ok">waiting…</div>
+      <div class="metric-unit">pH</div>
+      <div id="ph-dev" class="metric-dev dev-ok">waiting...</div>
       <div class="metric-bar" id="ph-bar" style="width:0%;background:#1D9E75"></div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Turbidity</div>
       <div class="metric-val" id="turb-val">---</div>
-      <div class="metric-unit">NTU (raw ADC)</div>
-      <div id="turb-dev" class="metric-dev dev-ok">waiting…</div>
+      <div class="metric-unit">NTU</div>
+      <div id="turb-dev" class="metric-dev dev-ok">waiting...</div>
       <div class="metric-bar" id="turb-bar" style="width:0%;background:#BA7517"></div>
     </div>
   </div>
 
-  <div class="chart-section">
-    <div class="chart-header">
-      <div class="chart-title">Live sensor readings (last 30s)</div>
-      <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:#185FA5"></div>TDS</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>pH</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#BA7517"></div>Turbidity</div>
+  <div class="charts-grid">
+    <div class="chart-section">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">TDS Trend</div>
+          <div class="chart-subtitle">Last 30 readings</div>
+        </div>
+      </div>
+      <div style="position:relative;height:180px">
+        <canvas id="tdsChart"></canvas>
       </div>
     </div>
-    <div style="position:relative;height:180px">
-      <canvas id="liveChart"></canvas>
+
+    <div class="chart-section">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">pH Trend</div>
+          <div class="chart-subtitle">Last 30 readings</div>
+        </div>
+      </div>
+      <div style="position:relative;height:180px">
+        <canvas id="phChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Turbidity Trend</div>
+          <div class="chart-subtitle">Last 30 readings</div>
+        </div>
+      </div>
+      <div style="position:relative;height:180px">
+        <canvas id="turbChart"></canvas>
+      </div>
     </div>
   </div>
 
@@ -158,7 +174,7 @@ body{font-family:'DM Sans',sans-serif}
     <div class="alert-log" id="alert-log">
       <div class="alert-item ok">
         <div class="alert-time">--:--:--</div>
-        <div class="alert-msg">System started. Connecting to ESP32…</div>
+        <div class="alert-msg">System started. Connecting to ESP32...</div>
       </div>
     </div>
   </div>
@@ -182,43 +198,53 @@ body{font-family:'DM Sans',sans-serif}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ─── Config ────────────────────────────────────────────────────────────────
-const WS_URL =window.location.protocol === 'https:'? `wss://${window.location.host}`: `ws://${window.location.host}`; // ← change this to your server IP
+const WS_URL = window.location.protocol === 'https:' ? `wss://${window.location.host}` : `ws://${window.location.host}`;
 const RECONNECT_DELAY_MS = 3000;
 const MAX_POINTS = 30;
 
-// ─── Chart setup ───────────────────────────────────────────────────────────
 const labels = [];
-const tdsData = [], phData = [], turbData = [];
+const tdsData = [];
+const phData = [];
+const turbData = [];
 
-const ctx = document.getElementById('liveChart').getContext('2d');
-const chart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels,
-    datasets: [
-      { label: 'TDS',       data: tdsData,  borderColor: '#185FA5', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
-      { label: 'pH',        data: phData,   borderColor: '#1D9E75', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
-      { label: 'Turbidity', data: turbData, borderColor: '#BA7517', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 300 },
-    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, bodyFont: { family: 'Share Tech Mono' } } },
-    scales: {
-      x: { ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
-      y: { ticks: { font: { size: 10 }, maxTicksLimit: 5 }, grid: { color: 'rgba(128,128,128,0.1)' } }
+function createSensorChart(canvasId, label, color, data) {
+  return new Chart(document.getElementById(canvasId).getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data,
+        borderColor: color,
+        backgroundColor: 'transparent',
+        borderWidth: 1.8,
+        pointRadius: 0,
+        tension: 0.35
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false, bodyFont: { family: 'Share Tech Mono' } }
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        y: { ticks: { font: { size: 10 }, maxTicksLimit: 5 }, grid: { color: 'rgba(128,128,128,0.1)' } }
+      }
     }
-  }
-});
+  });
+}
 
-// ─── State ─────────────────────────────────────────────────────────────────
+const tdsChart = createSensorChart('tdsChart', 'TDS', '#185FA5', tdsData);
+const phChart = createSensorChart('phChart', 'pH', '#1D9E75', phData);
+const turbChart = createSensorChart('turbChart', 'Turbidity', '#BA7517', turbData);
+
 let baseline = null;
 let lastAlertState = false;
 
-// ─── UI helpers ────────────────────────────────────────────────────────────
 function addLog(msg, type) {
   const log = document.getElementById('alert-log');
   const t = new Date().toTimeString().slice(0, 8);
@@ -239,6 +265,7 @@ function resetBaseline() {
   baseline = null;
   addLog('Baseline reset. Will recalibrate on next reading.', 'ok');
 }
+
 function openHistory() {
   window.open('/history.html', '_blank');
 }
@@ -248,61 +275,64 @@ function showMobileNotif(tds, ph, turb, devs) {
   document.getElementById('notif-placeholder').style.display = 'none';
   document.getElementById('notif-time').textContent = new Date().toTimeString().slice(0, 5);
   const parts = [];
-  if (devs.tds  > 20) parts.push(`TDS +${devs.tds.toFixed(0)}%`);
-  if (devs.ph   > 20) parts.push(`pH +${devs.ph.toFixed(0)}%`);
+  if (devs.tds > 20) parts.push(`TDS +${devs.tds.toFixed(0)}%`);
+  if (devs.ph > 20) parts.push(`pH +${devs.ph.toFixed(0)}%`);
   if (devs.turb > 20) parts.push(`Turbidity +${devs.turb.toFixed(0)}%`);
   document.getElementById('notif-title').textContent = 'Water Quality Alert';
-  document.getElementById('notif-body').textContent  = `${parts.join(', ')} deviation detected. TDS: ${tds} | pH: ${ph} | Turb: ${turb}`;
+  document.getElementById('notif-body').textContent = `${parts.join(', ')} deviation detected. TDS: ${tds} | pH: ${ph} | Turb: ${turb}`;
 }
 
 function setWsStatus(state) {
-  const ind  = document.getElementById('ws-indicator');
+  const ind = document.getElementById('ws-indicator');
   const text = document.getElementById('ws-status-text');
   ind.className = 'ws-indicator';
-  if (state === 'connected')    { ind.classList.add('ws-connected');    text.textContent = 'Live'; }
-  else if (state === 'disconnected') { ind.classList.add('ws-disconnected'); text.textContent = 'Disconnected'; }
-  else                          { ind.classList.add('ws-connecting');   text.textContent = 'Connecting…'; }
+  if (state === 'connected') {
+    ind.classList.add('ws-connected');
+    text.textContent = 'Live';
+  } else if (state === 'disconnected') {
+    ind.classList.add('ws-disconnected');
+    text.textContent = 'Disconnected';
+  } else {
+    ind.classList.add('ws-connecting');
+    text.textContent = 'Connecting...';
+  }
 }
 
-// ─── Core update — called with real data from WebSocket ────────────────────
 function updateDashboard(tds, ph, turb) {
   const t = new Date().toTimeString().slice(0, 8);
 
-  // Establish baseline on first reading
   if (!baseline) {
     baseline = { tds, ph, turb };
-    addLog(`Baseline set — TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'ok');
+    addLog(`Baseline set - TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'ok');
   }
 
-  const devTds  = Math.abs(tds  - baseline.tds)  * 100 / baseline.tds;
-  const devPh   = Math.abs(ph   - baseline.ph)   * 100 / baseline.ph;
+  const devTds = Math.abs(tds - baseline.tds) * 100 / baseline.tds;
+  const devPh = Math.abs(ph - baseline.ph) * 100 / baseline.ph;
   const devTurb = Math.abs(turb - baseline.turb) * 100 / baseline.turb;
 
-  // Metric cards
-  document.getElementById('tds-val').textContent  = tds;
-  document.getElementById('ph-val').textContent   = ph;
+  document.getElementById('tds-val').textContent = tds;
+  document.getElementById('ph-val').textContent = ph;
   document.getElementById('turb-val').textContent = turb;
 
-  document.getElementById('tds-dev').textContent  = devTds  < 1 ? 'baseline' : `+${devTds.toFixed(1)}%  dev`;
-  document.getElementById('ph-dev').textContent   = devPh   < 1 ? 'baseline' : `+${devPh.toFixed(1)}% dev`;
+  document.getElementById('tds-dev').textContent = devTds < 1 ? 'baseline' : `+${devTds.toFixed(1)}% dev`;
+  document.getElementById('ph-dev').textContent = devPh < 1 ? 'baseline' : `+${devPh.toFixed(1)}% dev`;
   document.getElementById('turb-dev').textContent = devTurb < 1 ? 'baseline' : `+${devTurb.toFixed(1)}% dev`;
 
-  document.getElementById('tds-dev').className  = 'metric-dev ' + devClass(devTds);
-  document.getElementById('ph-dev').className   = 'metric-dev ' + devClass(devPh);
+  document.getElementById('tds-dev').className = 'metric-dev ' + devClass(devTds);
+  document.getElementById('ph-dev').className = 'metric-dev ' + devClass(devPh);
   document.getElementById('turb-dev').className = 'metric-dev ' + devClass(devTurb);
 
-  document.getElementById('tds-bar').style.width  = Math.min(devTds  * 2, 100) + '%';
-  document.getElementById('ph-bar').style.width   = Math.min(devPh   * 2, 100) + '%';
+  document.getElementById('tds-bar').style.width = Math.min(devTds * 2, 100) + '%';
+  document.getElementById('ph-bar').style.width = Math.min(devPh * 2, 100) + '%';
   document.getElementById('turb-bar').style.width = Math.min(devTurb * 2, 100) + '%';
 
-  // Status pill
   const isAlert = devTds > 20 || devPh > 20 || devTurb > 20;
   const pill = document.getElementById('status-pill');
   if (isAlert) {
     pill.className = 'status-pill status-alert';
     document.getElementById('status-text').textContent = 'Quality Alert';
     if (!lastAlertState) {
-      addLog(`ALERT — TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'danger');
+      addLog(`ALERT - TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'danger');
       showMobileNotif(tds, ph, turb, { tds: devTds, ph: devPh, turb: devTurb });
     }
   } else {
@@ -312,22 +342,28 @@ function updateDashboard(tds, ph, turb) {
   }
   lastAlertState = isAlert;
 
-  // Chart
   labels.push(t);
   tdsData.push(tds);
   phData.push(ph);
   turbData.push(turb);
-  if (labels.length > MAX_POINTS) { labels.shift(); tdsData.shift(); phData.shift(); turbData.shift(); }
-  chart.update('none');
+
+  if (labels.length > MAX_POINTS) {
+    labels.shift();
+    tdsData.shift();
+    phData.shift();
+    turbData.shift();
+  }
+
+  tdsChart.update('none');
+  phChart.update('none');
+  turbChart.update('none');
 }
 
-// ─── WebSocket with auto-reconnect ─────────────────────────────────────────
 let ws = null;
 let reconnectTimer = null;
 
 function connectWebSocket() {
   setWsStatus('connecting');
-
   ws = new WebSocket(WS_URL);
 
   ws.onopen = () => {
@@ -337,12 +373,11 @@ function connectWebSocket() {
   };
 
   ws.onmessage = (event) => {
-      try {
-    const data = JSON.parse(event.data);
-
-    if (data.tds !== undefined) {
-      updateDashboard(data.tds, data.ph, data.turb);
-    }
+    try {
+      const data = JSON.parse(event.data);
+      if (data.tds !== undefined) {
+        updateDashboard(data.tds, data.ph, data.turb);
+      }
     } catch (e) {
       console.warn('Bad message from server:', event.data);
     }
@@ -350,16 +385,16 @@ function connectWebSocket() {
 
   ws.onclose = () => {
     setWsStatus('disconnected');
-    addLog('Connection lost. Reconnecting in 3s…', 'warn');
+    addLog('Connection lost. Reconnecting in 3s...', 'warn');
     reconnectTimer = setTimeout(connectWebSocket, RECONNECT_DELAY_MS);
   };
 
   ws.onerror = (err) => {
     console.error('WebSocket error:', err);
-    ws.close(); // triggers onclose → reconnect
+    ws.close();
   };
 }
-// 🔥 LOAD LAST 100 READINGS (history → graph)
+
 fetch('/history')
   .then(res => res.json())
   .then(data => {
@@ -369,7 +404,6 @@ fetch('/history')
   })
   .catch(err => console.error('History load failed:', err));
 
-// ─── Start ─────────────────────────────────────────────────────────────────
 connectWebSocket();
 </script>
 </body>
