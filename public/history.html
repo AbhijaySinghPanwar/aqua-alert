@@ -1,53 +1,287 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>History Graph</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aqua-Alert — History</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#e0e5ec;--panel:#f0f2f5;--muted:#d1d9e6;
+  --text:#2d3436;--text-muted:#4a5568;--accent:#ff4757;
+  --border-shadow:#babecc;--border-light:#ffffff;
+  --shadow-card:8px 8px 16px #babecc,-8px -8px 16px #ffffff;
+  --shadow-float:12px 12px 24px #babecc,-12px -12px 24px #ffffff,inset 1px 1px 0 rgba(255,255,255,0.5);
+  --shadow-pressed:inset 6px 6px 12px #babecc,inset -6px -6px 12px #ffffff;
+  --shadow-recessed:inset 4px 4px 8px #babecc,inset -4px -4px 8px #ffffff;
+  --shadow-sharp:4px 4px 8px rgba(0,0,0,0.15),-1px -1px 1px rgba(255,255,255,0.8);
+  --font-sans:'Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;--radius-xl:24px;
+}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-height:100vh;position:relative}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.04;pointer-events:none;z-index:0;
+}
+
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px}
+
+/* header */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;padding:18px 24px;
+  background:var(--bg);border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-card);position:relative;
+}
+.header::before,.header::after{
+  content:'';position:absolute;width:10px;height:10px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,0.6) 20%,transparent 55%),radial-gradient(circle,#c8cdd8 40%,#a0a8b8 100%);
+  box-shadow:inset 1px 1px 2px rgba(0,0,0,0.25),inset -1px -1px 1px rgba(255,255,255,0.5);
+}
+.header::before{top:14px;left:14px}
+.header::after{top:14px;right:14px}
+
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{
+  width:44px;height:44px;border-radius:var(--radius-md);
+  background:linear-gradient(145deg,#1a5c99,#0C447C);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shadow-sharp);flex-shrink:0;
+}
+.logo-icon svg{width:22px;height:22px;fill:none;stroke:#B5D4F4;stroke-width:2}
+
+.logo-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.02em;line-height:1;perspective:400px}
+.logo-title .char{display:inline-block;animation:flipIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both}
+@keyframes flipIn{from{opacity:0;transform:rotateX(-90deg) translateY(-10px)}to{opacity:1;transform:rotateX(0)}}
+.logo-sub{font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-mono);margin-top:3px}
+
+.tac-btn{
+  font-family:var(--font-sans);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em;
+  padding:9px 18px;border-radius:var(--radius-md);
+  background:var(--bg);color:var(--text);border:none;cursor:pointer;
+  box-shadow:var(--shadow-card);
+  transition:all 150ms cubic-bezier(0.175,0.885,0.32,1.275);
+  user-select:none;
+}
+.tac-btn:hover{color:var(--accent);box-shadow:var(--shadow-float)}
+.tac-btn:active{transform:translateY(2px);box-shadow:var(--shadow-pressed);color:var(--accent)}
+
+/* summary strip */
+.summary-strip{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  margin-bottom:20px;
+}
+.stat-card{
+  background:var(--bg);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:box-shadow 300ms ease,transform 300ms ease;
+}
+.stat-card:hover{box-shadow:var(--shadow-float);transform:translateY(-2px)}
+.stat-card::after{
+  content:'';position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,0.5) 20%,transparent 55%),radial-gradient(circle,#c8cdd8 40%,#a0a8b8 100%);
+  box-shadow:inset 1px 1px 1px rgba(0,0,0,0.2);
+}
+.vent{position:absolute;top:14px;left:14px;display:flex;gap:3px}
+.vent span{display:block;width:2px;height:14px;border-radius:99px;background:var(--muted);box-shadow:inset 1px 1px 2px rgba(0,0,0,0.1)}
+.stat-label{font-family:var(--font-mono);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;padding-left:24px}
+.stat-val{font-family:var(--font-mono);font-size:30px;font-weight:500;color:var(--text);text-shadow:1px 1px 0 #fff;line-height:1}
+.stat-unit{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:4px}
+
+/* chart card */
+.chart-card{
+  background:var(--bg);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);padding:20px 22px;
+  margin-bottom:20px;position:relative;
+}
+.chart-card::before{
+  content:'';position:absolute;top:14px;left:14px;width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,0.5) 20%,transparent 55%),radial-gradient(circle,#c8cdd8 40%,#a0a8b8 100%);
+  box-shadow:inset 1px 1px 1px rgba(0,0,0,0.2);
+}
+.chart-label{font-family:var(--font-mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text);margin-bottom:14px;padding-left:20px}
+.chart-sub{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);margin-top:2px}
+
+/* CRT screen */
+.chart-screen{
+  background:#111518;border-radius:var(--radius-md);
+  box-shadow:var(--shadow-recessed),inset 0 0 0 1px rgba(0,0,0,0.4);
+  padding:12px 10px 10px;position:relative;overflow:hidden;
+}
+.chart-screen::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(transparent,transparent 2px,rgba(0,0,0,0.18) 2px,rgba(0,0,0,0.18) 4px);
+  pointer-events:none;z-index:2;
+}
+
+/* legend */
+.legend{display:flex;gap:18px;margin-bottom:12px}
+.leg{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* empty state */
+.empty{
+  font-family:var(--font-mono);font-size:11px;color:var(--text-muted);
+  text-align:center;padding:32px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.6;
+}
+</style>
 </head>
+<body>
+<div class="page">
 
-<body style="font-family:sans-serif; padding:20px;">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 9 2 14a10 10 0 0020 0C22 9 17.5 2 12 2z"/><path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="logo-title" id="flip-title"></div>
+        <div class="logo-sub">Water Quality History</div>
+      </div>
+    </div>
+    <button class="tac-btn" onclick="window.location.href='/'">← Back to Live</button>
+  </div>
 
-<h2>📊 Water Quality History</h2>
+  <!-- SUMMARY STATS -->
+  <div class="summary-strip">
+    <div class="stat-card">
+      <div class="vent"><span></span><span></span><span></span></div>
+      <div class="stat-label">Avg TDS</div>
+      <div class="stat-val" id="avg-tds">---</div>
+      <div class="stat-unit">ppm</div>
+    </div>
+    <div class="stat-card">
+      <div class="vent"><span></span><span></span><span></span></div>
+      <div class="stat-label">Avg pH</div>
+      <div class="stat-val" id="avg-ph">---</div>
+      <div class="stat-unit">pH</div>
+    </div>
+    <div class="stat-card">
+      <div class="vent"><span></span><span></span><span></span></div>
+      <div class="stat-label">Avg Turbidity</div>
+      <div class="stat-val" id="avg-turb">---</div>
+      <div class="stat-unit">NTU</div>
+    </div>
+  </div>
 
-<canvas id="chart" height="100"></canvas>
+  <!-- COMBINED HISTORY CHART -->
+  <div class="chart-card">
+    <div class="chart-label" style="padding-left:20px">
+      All Sensors — Historical View
+      <div class="chart-sub">Full session history from ESP32</div>
+    </div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#60A5FA"></div>TDS</div>
+      <div class="leg"><div class="leg-dot" style="background:#34D399"></div>pH</div>
+      <div class="leg"><div class="leg-dot" style="background:#FBBF24"></div>Turbidity</div>
+    </div>
+    <div class="chart-screen" style="height:260px">
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="empty" id="empty-msg" style="display:none">No history data available yet</div>
+  </div>
 
+  <!-- INDIVIDUAL CHARTS -->
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+    <div class="chart-card">
+      <div class="chart-label">TDS Readings</div>
+      <div class="chart-screen" style="height:160px"><canvas id="tdsOnly"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-label">pH Readings</div>
+      <div class="chart-screen" style="height:160px"><canvas id="phOnly"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-label">Turbidity Readings</div>
+      <div class="chart-screen" style="height:160px"><canvas id="turbOnly"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const ctx = document.getElementById('chart').getContext('2d');
-
-const chart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [
-      { label: 'TDS', borderWidth: 2, data: [] },
-      { label: 'pH', borderWidth: 2, data: [] },
-      { label: 'Turbidity', borderWidth: 2, data: [] }
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      y: { beginAtZero: true }
-    }
-  }
+/* flip text */
+const titleText = 'Aqua-Alert';
+const titleEl = document.getElementById('flip-title');
+titleText.split('').forEach((ch,i)=>{
+  const s=document.createElement('span');
+  s.className='char'; s.textContent=ch===''?'\u00a0':ch;
+  s.style.animationDelay=(i*0.06)+'s'; titleEl.appendChild(s);
 });
 
-// 🔥 Load history from backend
+const CHART_OPTS = {
+  responsive:true,maintainAspectRatio:false,
+  animation:{duration:400},
+  plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,bodyFont:{family:'JetBrains Mono'}}},
+  scales:{
+    x:{ticks:{maxTicksLimit:8,font:{size:9},color:'#6699aa'},grid:{color:'rgba(80,160,80,0.1)'}},
+    y:{ticks:{font:{size:9},maxTicksLimit:5,color:'#6699aa'},grid:{color:'rgba(80,160,80,0.1)'}}
+  }
+};
+
+const multiChart = new Chart(document.getElementById('chart').getContext('2d'),{
+  type:'line',
+  data:{labels:[],datasets:[
+    {label:'TDS',data:[],borderColor:'#60A5FA',backgroundColor:'rgba(96,165,250,0.08)',borderWidth:1.8,pointRadius:0,tension:0.35,fill:true},
+    {label:'pH',data:[],borderColor:'#34D399',backgroundColor:'rgba(52,211,153,0.08)',borderWidth:1.8,pointRadius:0,tension:0.35,fill:true},
+    {label:'Turbidity',data:[],borderColor:'#FBBF24',backgroundColor:'rgba(251,191,36,0.08)',borderWidth:1.8,pointRadius:0,tension:0.35,fill:true}
+  ]},
+  options:CHART_OPTS
+});
+
+function makeSingle(id,color){
+  return new Chart(document.getElementById(id).getContext('2d'),{
+    type:'line',
+    data:{labels:[],datasets:[{data:[],borderColor:color,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:0.35}]},
+    options:CHART_OPTS
+  });
+}
+const tdsOnly  = makeSingle('tdsOnly','#60A5FA');
+const phOnly   = makeSingle('phOnly','#34D399');
+const turbOnly = makeSingle('turbOnly','#FBBF24');
+
 fetch('/history')
   .then(res => res.json())
   .then(data => {
-    data.forEach((d, i) => {
-      chart.data.labels.push(i);
+    if(!data||data.length===0){
+      document.getElementById('empty-msg').style.display='block';
+      return;
+    }
 
-      chart.data.datasets[0].data.push(d.tds);
-      chart.data.datasets[1].data.push(d.ph);
-      chart.data.datasets[2].data.push(d.turb);
+    const avgTds  = Math.round(data.reduce((s,d)=>s+d.tds,0)/data.length);
+    const avgPh   = Math.round(data.reduce((s,d)=>s+d.ph,0)/data.length);
+    const avgTurb = Math.round(data.reduce((s,d)=>s+d.turb,0)/data.length);
+    document.getElementById('avg-tds').textContent  = avgTds;
+    document.getElementById('avg-ph').textContent   = avgPh;
+    document.getElementById('avg-turb').textContent = avgTurb;
+
+    data.forEach((d,i) => {
+      const lbl = i.toString();
+      multiChart.data.labels.push(lbl);
+      multiChart.data.datasets[0].data.push(d.tds);
+      multiChart.data.datasets[1].data.push(d.ph);
+      multiChart.data.datasets[2].data.push(d.turb);
+
+      tdsOnly.data.labels.push(lbl);  tdsOnly.data.datasets[0].data.push(d.tds);
+      phOnly.data.labels.push(lbl);   phOnly.data.datasets[0].data.push(d.ph);
+      turbOnly.data.labels.push(lbl); turbOnly.data.datasets[0].data.push(d.turb);
     });
 
-    chart.update();
+    multiChart.update();
+    tdsOnly.update(); phOnly.update(); turbOnly.update();
   })
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error(err);
+    document.getElementById('empty-msg').style.display='block';
+    document.getElementById('empty-msg').textContent='Failed to load history. Is the server running?';
+  });
 </script>
-
 </body>
 </html>

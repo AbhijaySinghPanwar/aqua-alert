@@ -3,411 +3,702 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aqua-Alert Dashboard</title>
+<title>Aqua-Alert — Water Quality Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif}
-.dash{padding:16px;background:var(--color-background-tertiary);min-height:600px}
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 16px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg)}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-icon{width:32px;height:32px;border-radius:8px;background:#0C447C;display:flex;align-items:center;justify-content:center}
-.logo-icon svg{width:18px;height:18px;fill:none;stroke:#E6F1FB;stroke-width:2}
-.logo-text{font-size:15px;font-weight:500;color:var(--color-text-primary)}
-.logo-sub{font-size:11px;color:var(--color-text-secondary)}
-.header-right{display:flex;align-items:center;gap:10px}
-.ws-indicator{font-size:11px;padding:4px 8px;border-radius:20px;font-weight:500;display:flex;align-items:center;gap:5px}
-.ws-connected{background:#d1fae5;color:#065f46}
-.ws-disconnected{background:#fee2e2;color:#991b1b}
-.ws-connecting{background:#fef3c7;color:#92400e}
-.ws-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
-.status-pill{display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 10px;border-radius:20px;font-weight:500}
-.status-ok{background:var(--color-background-success);color:var(--color-text-success)}
-.status-alert{background:var(--color-background-danger);color:var(--color-text-danger)}
-.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
-.metric-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;position:relative;overflow:hidden}
-.metric-label{font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
-.metric-val{font-family:'Share Tech Mono',monospace;font-size:26px;font-weight:400;color:var(--color-text-primary);line-height:1}
-.metric-unit{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
-.metric-dev{font-size:11px;margin-top:6px;padding:2px 7px;border-radius:4px;display:inline-block;font-weight:500}
-.dev-ok{background:var(--color-background-success);color:var(--color-text-success)}
-.dev-warn{background:var(--color-background-warning);color:var(--color-text-warning)}
-.dev-bad{background:var(--color-background-danger);color:var(--color-text-danger)}
-.metric-bar{position:absolute;bottom:0;left:0;height:3px;background:#185FA5;transition:width 0.5s ease}
-.charts-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
-.chart-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;min-width:0;overflow:hidden}
-.chart-section canvas{display:block;width:100% !important;max-width:100%}
-.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.chart-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
-.chart-subtitle{font-size:11px;color:var(--color-text-secondary)}
-.alerts-panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
-.panel-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.alert-log{display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto}
-.alert-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);font-size:12px}
-.alert-item.danger{background:var(--color-background-danger);border:0.5px solid var(--color-border-danger)}
-.alert-item.ok{background:var(--color-background-success);border:0.5px solid var(--color-border-success)}
-.alert-item.warn{background:var(--color-background-warning);border:0.5px solid var(--color-border-warning, #f59e0b)}
-.alert-time{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--color-text-secondary);flex-shrink:0;margin-top:1px}
-.alert-msg{color:var(--color-text-primary);line-height:1.4}
-.mobile-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;margin-top:12px}
-.notif-phone{border:0.5px solid var(--color-border-secondary);border-radius:12px;padding:10px 12px;margin-top:8px;display:flex;gap:10px;align-items:flex-start}
-.notif-app-icon{width:32px;height:32px;border-radius:8px;background:#0C447C;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:500}
+
+:root{
+  --bg:#e0e5ec;
+  --panel:#f0f2f5;
+  --muted:#d1d9e6;
+  --text:#2d3436;
+  --text-muted:#4a5568;
+  --accent:#ff4757;
+  --border-shadow:#babecc;
+  --border-light:#ffffff;
+  --border-dark:#a3b1c6;
+  --shadow-card:8px 8px 16px #babecc,-8px -8px 16px #ffffff;
+  --shadow-float:12px 12px 24px #babecc,-12px -12px 24px #ffffff,inset 1px 1px 0 rgba(255,255,255,0.5);
+  --shadow-pressed:inset 6px 6px 12px #babecc,inset -6px -6px 12px #ffffff;
+  --shadow-recessed:inset 4px 4px 8px #babecc,inset -4px -4px 8px #ffffff;
+  --shadow-sharp:4px 4px 8px rgba(0,0,0,0.15),-1px -1px 1px rgba(255,255,255,0.8);
+  --radius-sm:4px;
+  --radius-md:8px;
+  --radius-lg:16px;
+  --radius-xl:24px;
+  --font-sans:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  position:relative;
+}
+
+/* noise texture overlay */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.04;
+  pointer-events:none;
+  z-index:0;
+}
+
+.dash{
+  position:relative;
+  z-index:1;
+  max-width:1280px;
+  margin:0 auto;
+  padding:24px;
+}
+
+/* ── HEADER ── */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:24px;
+  padding:18px 24px;
+  background:var(--bg);
+  border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-card);
+  position:relative;
+  overflow:hidden;
+}
+
+/* corner screws */
+.header::before,.header::after{
+  content:'';
+  position:absolute;
+  width:10px;height:10px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255,255,255,0.6) 20%, transparent 55%),
+    radial-gradient(circle, #c8cdd8 40%, #a0a8b8 100%);
+  box-shadow:inset 1px 1px 2px rgba(0,0,0,0.25),inset -1px -1px 1px rgba(255,255,255,0.5);
+}
+.header::before{top:14px;left:14px}
+.header::after{top:14px;right:14px}
+
+.logo{display:flex;align-items:center;gap:14px}
+
+.logo-icon{
+  width:44px;height:44px;
+  border-radius:var(--radius-md);
+  background:linear-gradient(145deg,#1a5c99,#0C447C);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shadow-sharp);
+  flex-shrink:0;
+}
+.logo-icon svg{width:22px;height:22px;fill:none;stroke:#B5D4F4;stroke-width:2}
+
+/* FLIP TEXT title */
+.logo-title{
+  font-size:20px;font-weight:800;
+  color:var(--text);
+  letter-spacing:-0.02em;
+  line-height:1;
+  perspective:400px;
+}
+.logo-title .char{
+  display:inline-block;
+  animation:flipIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both;
+}
+@keyframes flipIn{
+  from{opacity:0;transform:rotateX(-90deg) translateY(-10px)}
+  to{opacity:1;transform:rotateX(0deg) translateY(0)}
+}
+.logo-sub{
+  font-size:11px;font-weight:600;
+  letter-spacing:0.07em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  font-family:var(--font-mono);
+  margin-top:3px;
+}
+
+.header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* LED status indicator */
+.led-group{display:flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.led{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.led-green{background:#22c55e;box-shadow:0 0 8px 2px rgba(34,197,94,0.7);animation:ledpulse 2s infinite}
+.led-red{background:#ff4757;box-shadow:0 0 8px 2px rgba(255,71,87,0.7);animation:ledpulse 1s infinite}
+.led-yellow{background:#f59e0b;box-shadow:0 0 6px 1px rgba(245,158,11,0.6);animation:ledpulse 2s infinite}
+.led-off{background:#8899aa;box-shadow:none;animation:none}
+@keyframes ledpulse{0%,100%{opacity:1}50%{opacity:0.45}}
+
+/* ws pill */
+.ws-pill{
+  font-family:var(--font-mono);font-size:10px;font-weight:500;
+  letter-spacing:0.06em;text-transform:uppercase;
+  padding:5px 12px;border-radius:99px;
+  box-shadow:var(--shadow-recessed);
+  border:none;outline:none;
+}
+.ws-connected{background:var(--bg);color:#16a34a}
+.ws-disconnected{background:var(--bg);color:#dc2626}
+.ws-connecting{background:var(--bg);color:#b45309}
+
+/* tactile buttons */
+.tac-btn{
+  font-family:var(--font-sans);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em;
+  padding:9px 18px;border-radius:var(--radius-md);
+  background:var(--bg);color:var(--text);
+  border:none;cursor:pointer;
+  box-shadow:var(--shadow-card);
+  transition:all 150ms cubic-bezier(0.175,0.885,0.32,1.275);
+  position:relative;
+  user-select:none;
+}
+.tac-btn:hover{color:var(--accent);box-shadow:var(--shadow-float)}
+.tac-btn:active{
+  transform:translateY(2px);
+  box-shadow:var(--shadow-pressed);
+  color:var(--accent);
+}
+.tac-btn.accent{
+  background:var(--accent);color:#fff;
+  box-shadow:4px 4px 8px rgba(166,50,60,0.35),-4px -4px 8px rgba(255,100,110,0.25);
+}
+.tac-btn.accent:hover{box-shadow:6px 6px 12px rgba(166,50,60,0.45),-4px -4px 8px rgba(255,120,130,0.3)}
+.tac-btn.accent:active{box-shadow:inset 4px 4px 8px rgba(120,20,30,0.4),inset -2px -2px 6px rgba(255,100,110,0.2)}
+
+/* ── METRICS ── */
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.metric-card{
+  background:var(--bg);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:20px 22px 16px;
+  position:relative;
+  overflow:hidden;
+  transition:box-shadow 300ms ease,transform 300ms ease;
+}
+.metric-card:hover{
+  box-shadow:var(--shadow-float);
+  transform:translateY(-2px);
+}
+
+/* screw top-right */
+.metric-card::after{
+  content:'';
+  position:absolute;top:12px;right:12px;
+  width:8px;height:8px;border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255,255,255,0.5) 20%, transparent 55%),
+    radial-gradient(circle, #c8cdd8 40%, #a0a8b8 100%);
+  box-shadow:inset 1px 1px 1px rgba(0,0,0,0.2);
+}
+
+/* vent slots top-left */
+.vent{
+  position:absolute;top:14px;left:14px;
+  display:flex;gap:3px;
+}
+.vent span{
+  display:block;width:2px;height:16px;border-radius:99px;
+  background:var(--muted);
+  box-shadow:inset 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.metric-label{
+  font-family:var(--font-mono);font-size:10px;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--text-muted);
+  margin-bottom:10px;
+  padding-left:24px;/* clear vent */
+}
+.metric-val{
+  font-family:var(--font-mono);font-size:36px;font-weight:500;
+  color:var(--text);line-height:1;
+  text-shadow:1px 1px 0 #fff;
+}
+.metric-val.alert-val{color:var(--accent)}
+.metric-unit{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--text-muted);margin-top:4px;
+  text-transform:uppercase;letter-spacing:0.05em;
+}
+.metric-dev{
+  font-family:var(--font-mono);font-size:10px;font-weight:500;
+  margin-top:10px;padding:3px 8px;
+  border-radius:var(--radius-sm);display:inline-block;
+  letter-spacing:0.04em;
+}
+.dev-ok{background:#d1fae5;color:#065f46}
+.dev-warn{background:#fef3c7;color:#92400e}
+.dev-bad{background:#fee2e2;color:#991b1b}
+
+/* threshold bar — recessed groove */
+.metric-bar-track{
+  position:absolute;bottom:0;left:0;right:0;height:4px;
+  background:var(--muted);
+  box-shadow:inset 1px 1px 2px rgba(0,0,0,0.1);
+}
+.metric-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,#185FA5,#378ADD);
+  transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── CHARTS GRID ── */
+.charts-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.chart-card{
+  background:var(--bg);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:18px 20px;
+  min-width:0;overflow:hidden;
+  position:relative;
+}
+
+/* screen bezel effect around chart */
+.chart-screen{
+  background:#111518;
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-recessed),inset 0 0 0 1px rgba(0,0,0,0.4);
+  padding:10px 8px 8px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* CRT scanlines */
+.chart-screen::after{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(transparent,transparent 2px,rgba(0,0,0,0.18) 2px,rgba(0,0,0,0.18) 4px);
+  pointer-events:none;
+  z-index:2;
+}
+
+.chart-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:12px;
+}
+.chart-title{
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--text);
+}
+.chart-subtitle{
+  font-family:var(--font-mono);font-size:9px;
+  color:var(--text-muted);margin-top:2px;
+}
+
+.chart-card canvas{display:block;width:100% !important;max-width:100%}
+
+/* ── BOTTOM ROW ── */
+.bottom-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+/* ── ALERT LOG ── */
+.panel-card{
+  background:var(--bg);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  padding:18px 20px;
+  position:relative;
+}
+.panel-card::before{
+  content:'';
+  position:absolute;top:14px;left:14px;
+  width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,0.5) 20%,transparent 55%),radial-gradient(circle,#c8cdd8 40%,#a0a8b8 100%);
+  box-shadow:inset 1px 1px 1px rgba(0,0,0,0.2);
+}
+
+.panel-title{
+  font-family:var(--font-mono);font-size:11px;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--text);
+  margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding-left:20px;
+}
+
+.alert-log{
+  display:flex;flex-direction:column;gap:6px;
+  max-height:160px;overflow-y:auto;
+}
+.alert-log::-webkit-scrollbar{width:4px}
+.alert-log::-webkit-scrollbar-track{background:var(--muted);border-radius:2px}
+.alert-log::-webkit-scrollbar-thumb{background:#b0bac9;border-radius:2px}
+
+.alert-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 12px;
+  border-radius:var(--radius-md);
+  font-size:11px;
+  border-left:3px solid transparent;
+}
+.alert-item.ok{background:#d1fae5;border-left-color:#16a34a;color:#064e3b}
+.alert-item.danger{background:#fee2e2;border-left-color:#dc2626;color:#7f1d1d}
+.alert-item.warn{background:#fef3c7;border-left-color:#f59e0b;color:#78350f}
+.alert-time{font-family:var(--font-mono);font-size:10px;flex-shrink:0;opacity:0.7;margin-top:1px}
+.alert-msg{line-height:1.5;font-weight:500}
+
+/* ── MOBILE NOTIF ── */
+.notif-phone{
+  background:var(--panel);
+  border-radius:var(--radius-md);
+  padding:12px 14px;
+  margin-top:10px;
+  display:flex;gap:12px;align-items:flex-start;
+  box-shadow:var(--shadow-recessed);
+}
+.notif-app-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(145deg,#1a5c99,#0C447C);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:15px;color:#fff;font-weight:700;
+  box-shadow:var(--shadow-sharp);
+}
 .notif-content{flex:1}
 .notif-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
-.notif-app-name{font-size:11px;font-weight:500;color:var(--color-text-secondary)}
-.notif-time-small{font-size:10px;color:var(--color-text-tertiary)}
-.notif-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
-.notif-body{font-size:11px;color:var(--color-text-secondary);margin-top:1px;line-height:1.4}
-.send-btn{margin-top:10px;display:flex;gap:8px}
-.baseline-btn{font-size:12px;padding:6px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer}
-.baseline-btn:hover{background:var(--color-background-tertiary)}
-@media (max-width: 1200px){
-  .charts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media (max-width: 900px){
-  .header{flex-direction:column;align-items:flex-start;gap:12px}
-  .header-right{flex-wrap:wrap}
+.notif-app-name{font-family:var(--font-mono);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)}
+.notif-time-small{font-family:var(--font-mono);font-size:9px;color:var(--text-muted)}
+.notif-title{font-size:13px;font-weight:700;color:var(--text)}
+.notif-body{font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.5}
+.notif-placeholder{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;padding:16px;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em}
+
+.btn-row{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){.charts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){
   .metrics{grid-template-columns:1fr}
   .charts-grid{grid-template-columns:1fr}
+  .bottom-grid{grid-template-columns:1fr}
+  .header{flex-direction:column;align-items:flex-start;gap:14px}
+  .header-right{flex-wrap:wrap}
 }
 </style>
 </head>
 <body>
-
 <div class="dash">
+
+  <!-- HEADER -->
   <div class="header">
     <div class="logo">
       <div class="logo-icon">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2C6.5 2 2 9 2 14a10 10 0 0020 0C22 9 17.5 2 12 2z"/>
-          <path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 9 2 14a10 10 0 0020 0C22 9 17.5 2 12 2z"/><path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke-linecap="round"/></svg>
       </div>
       <div>
-        <div class="logo-text">Aqua-Alert</div>
+        <div class="logo-title" id="flip-title"></div>
         <div class="logo-sub">Residential Water Quality Monitor</div>
       </div>
     </div>
 
     <div class="header-right">
-      <div id="ws-indicator" class="ws-indicator ws-connecting">
-        <span class="ws-dot"></span>
-        <span id="ws-status-text">Connecting...</span>
+      <div class="led-group">
+        <div class="led led-off" id="ws-led"></div>
+        <span id="ws-status-text">Connecting</span>
       </div>
 
-      <div id="status-pill" class="status-pill status-ok">
-        <span class="dot"></span>
+      <div class="ws-pill ws-connecting" id="ws-indicator">
+        <span id="ws-pill-text">● Connecting...</span>
+      </div>
+
+      <div class="led-group" id="quality-led-group">
+        <div class="led led-green" id="quality-led"></div>
         <span id="status-text">All Clear</span>
       </div>
 
-      <button onclick="openHistory()" style="padding:8px 12px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;margin-left:10px;">
-        History
-      </button>
+      <button class="tac-btn" onclick="resetBaseline()">↺ Reset Baseline</button>
+      <button class="tac-btn accent" onclick="openHistory()">History ↗</button>
     </div>
   </div>
 
+  <!-- METRIC CARDS -->
   <div class="metrics">
     <div class="metric-card">
+      <div class="vent"><span></span><span></span><span></span></div>
       <div class="metric-label">TDS</div>
       <div class="metric-val" id="tds-val">---</div>
       <div class="metric-unit">ppm</div>
       <div id="tds-dev" class="metric-dev dev-ok">waiting...</div>
-      <div class="metric-bar" id="tds-bar" style="width:0%"></div>
+      <div class="metric-bar-track"><div class="metric-bar-fill" id="tds-bar" style="width:0%;background:linear-gradient(90deg,#185FA5,#378ADD)"></div></div>
     </div>
     <div class="metric-card">
+      <div class="vent"><span></span><span></span><span></span></div>
       <div class="metric-label">pH Level</div>
       <div class="metric-val" id="ph-val">---</div>
       <div class="metric-unit">pH</div>
       <div id="ph-dev" class="metric-dev dev-ok">waiting...</div>
-      <div class="metric-bar" id="ph-bar" style="width:0%;background:#1D9E75"></div>
+      <div class="metric-bar-track"><div class="metric-bar-fill" id="ph-bar" style="width:0%;background:linear-gradient(90deg,#1D9E75,#5DCAA5)"></div></div>
     </div>
     <div class="metric-card">
+      <div class="vent"><span></span><span></span><span></span></div>
       <div class="metric-label">Turbidity</div>
       <div class="metric-val" id="turb-val">---</div>
       <div class="metric-unit">NTU</div>
       <div id="turb-dev" class="metric-dev dev-ok">waiting...</div>
-      <div class="metric-bar" id="turb-bar" style="width:0%;background:#BA7517"></div>
+      <div class="metric-bar-track"><div class="metric-bar-fill" id="turb-bar" style="width:0%;background:linear-gradient(90deg,#BA7517,#EF9F27)"></div></div>
     </div>
   </div>
 
+  <!-- CHARTS -->
   <div class="charts-grid">
-    <div class="chart-section">
+    <div class="chart-card">
       <div class="chart-header">
         <div>
           <div class="chart-title">TDS Trend</div>
           <div class="chart-subtitle">Last 30 readings</div>
         </div>
+        <div class="led-group"><div class="led led-off" id="tds-led"></div></div>
       </div>
-      <div style="position:relative;height:180px">
+      <div class="chart-screen" style="height:160px">
         <canvas id="tdsChart"></canvas>
       </div>
     </div>
-
-    <div class="chart-section">
+    <div class="chart-card">
       <div class="chart-header">
         <div>
           <div class="chart-title">pH Trend</div>
           <div class="chart-subtitle">Last 30 readings</div>
         </div>
+        <div class="led-group"><div class="led led-off" id="ph-led"></div></div>
       </div>
-      <div style="position:relative;height:180px">
+      <div class="chart-screen" style="height:160px">
         <canvas id="phChart"></canvas>
       </div>
     </div>
-
-    <div class="chart-section">
+    <div class="chart-card">
       <div class="chart-header">
         <div>
           <div class="chart-title">Turbidity Trend</div>
           <div class="chart-subtitle">Last 30 readings</div>
         </div>
+        <div class="led-group"><div class="led led-off" id="turb-led"></div></div>
       </div>
-      <div style="position:relative;height:180px">
+      <div class="chart-screen" style="height:160px">
         <canvas id="turbChart"></canvas>
       </div>
     </div>
   </div>
 
-  <div class="alerts-panel">
-    <div class="panel-title">
-      Alert log
-      <button class="baseline-btn" onclick="resetBaseline()">Reset baseline</button>
+  <!-- BOTTOM ROW -->
+  <div class="bottom-grid">
+    <!-- Alert Log -->
+    <div class="panel-card">
+      <div class="panel-title">
+        Alert Log
+      </div>
+      <div class="alert-log" id="alert-log">
+        <div class="alert-item ok">
+          <div class="alert-time">--:--:--</div>
+          <div class="alert-msg">System started. Connecting to ESP32...</div>
+        </div>
+      </div>
     </div>
-    <div class="alert-log" id="alert-log">
-      <div class="alert-item ok">
-        <div class="alert-time">--:--:--</div>
-        <div class="alert-msg">System started. Connecting to ESP32...</div>
+
+    <!-- Mobile Notification -->
+    <div class="panel-card">
+      <div class="panel-title">Mobile Notification Preview</div>
+      <div class="notif-phone" id="notif-card" style="display:none">
+        <div class="notif-app-icon">A</div>
+        <div class="notif-content">
+          <div class="notif-top">
+            <span class="notif-app-name">Aqua-Alert</span>
+            <span class="notif-time-small" id="notif-time">now</span>
+          </div>
+          <div class="notif-title" id="notif-title">Water Quality Alert</div>
+          <div class="notif-body" id="notif-body">TDS deviation detected.</div>
+        </div>
+      </div>
+      <div class="notif-placeholder" id="notif-placeholder">No alerts — system nominal</div>
+      <div class="btn-row">
+        <button class="tac-btn" style="font-size:10px;padding:7px 14px" onclick="window.open('/history.html','_blank')">View History</button>
       </div>
     </div>
   </div>
 
-  <div class="mobile-section">
-    <div class="panel-title">Mobile notification preview</div>
-    <div class="notif-phone" id="notif-card" style="display:none">
-      <div class="notif-app-icon">A</div>
-      <div class="notif-content">
-        <div class="notif-top">
-          <span class="notif-app-name">Aqua-Alert</span>
-          <span class="notif-time-small" id="notif-time">now</span>
-        </div>
-        <div class="notif-title" id="notif-title">Water Quality Alert</div>
-        <div class="notif-body" id="notif-body">TDS deviation detected.</div>
-      </div>
-    </div>
-    <div id="notif-placeholder" style="font-size:12px;color:var(--color-text-tertiary);margin-top:8px">No alerts yet. Notifications will appear here when water quality degrades.</div>
-  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+/* ── FLIP TEXT TITLE ── */
+const titleText = 'Aqua-Alert';
+const titleEl = document.getElementById('flip-title');
+titleText.split('').forEach((ch, i) => {
+  const s = document.createElement('span');
+  s.className = 'char';
+  s.textContent = ch === ' ' ? '\u00a0' : ch;
+  s.style.animationDelay = (i * 0.06) + 's';
+  titleEl.appendChild(s);
+});
+
+/* ── CONFIG ── */
 const WS_URL = window.location.protocol === 'https:' ? `wss://${window.location.host}` : `ws://${window.location.host}`;
 const RECONNECT_DELAY_MS = 3000;
 const MAX_POINTS = 30;
 
-const labels = [];
-const tdsData = [];
-const phData = [];
-const turbData = [];
+const labels = [], tdsData = [], phData = [], turbData = [];
 
-function createSensorChart(canvasId, label, color, data) {
-  return new Chart(document.getElementById(canvasId).getContext('2d'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label,
-        data,
-        borderColor: color,
-        backgroundColor: 'transparent',
-        borderWidth: 1.8,
-        pointRadius: 0,
-        tension: 0.35
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: { duration: 300 },
-      plugins: {
-        legend: { display: false },
-        tooltip: { mode: 'index', intersect: false, bodyFont: { family: 'Share Tech Mono' } }
-      },
-      scales: {
-        x: { ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
-        y: { ticks: { font: { size: 10 }, maxTicksLimit: 5 }, grid: { color: 'rgba(128,128,128,0.1)' } }
-      }
-    }
+/* ── CHARTS ── */
+const CHART_OPTS = (color) => ({
+  responsive:true, maintainAspectRatio:false,
+  animation:{duration:200},
+  plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,bodyFont:{family:'JetBrains Mono'},callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}`}}},
+  scales:{
+    x:{ticks:{maxTicksLimit:5,font:{size:9},color:'#556677'},grid:{color:'rgba(80,160,80,0.12)'}},
+    y:{ticks:{font:{size:9},maxTicksLimit:5,color:'#556677'},grid:{color:'rgba(80,160,80,0.12)'}}
+  }
+});
+
+function makeChart(id, label, color) {
+  return new Chart(document.getElementById(id).getContext('2d'), {
+    type:'line',
+    data:{labels,datasets:[{label,data:label==='TDS'?tdsData:label==='pH'?phData:turbData,borderColor:color,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:0.35}]},
+    options:CHART_OPTS(color)
   });
 }
 
-const tdsChart = createSensorChart('tdsChart', 'TDS', '#185FA5', tdsData);
-const phChart = createSensorChart('phChart', 'pH', '#1D9E75', phData);
-const turbChart = createSensorChart('turbChart', 'Turbidity', '#BA7517', turbData);
+const tdsChart  = makeChart('tdsChart','TDS','#60A5FA');
+const phChart   = makeChart('phChart','pH','#34D399');
+const turbChart = makeChart('turbChart','Turbidity','#FBBF24');
 
-let baseline = null;
-let lastAlertState = false;
+/* ── HELPERS ── */
+let baseline = null, lastAlertState = false;
 
 function addLog(msg, type) {
   const log = document.getElementById('alert-log');
-  const t = new Date().toTimeString().slice(0, 8);
+  const t = new Date().toTimeString().slice(0,8);
   const el = document.createElement('div');
   el.className = 'alert-item ' + type;
   el.innerHTML = `<div class="alert-time">${t}</div><div class="alert-msg">${msg}</div>`;
   log.insertBefore(el, log.firstChild);
-  while (log.children.length > 8) log.removeChild(log.lastChild);
+  while(log.children.length > 10) log.removeChild(log.lastChild);
 }
 
-function devClass(dev) {
-  if (dev < 10) return 'dev-ok';
-  if (dev < 20) return 'dev-warn';
+function devClass(d) {
+  if(d < 10) return 'dev-ok';
+  if(d < 20) return 'dev-warn';
   return 'dev-bad';
+}
+
+function setLed(el, state) {
+  el.className = 'led';
+  if(state==='green') el.classList.add('led-green');
+  else if(state==='red') el.classList.add('led-red');
+  else if(state==='yellow') el.classList.add('led-yellow');
+  else el.classList.add('led-off');
 }
 
 function resetBaseline() {
   baseline = null;
-  addLog('Baseline reset. Will recalibrate on next reading.', 'ok');
+  addLog('Baseline reset. Will recalibrate on next reading.', 'warn');
 }
 
-function openHistory() {
-  window.open('/history.html', '_blank');
-}
+function openHistory() { window.open('/history.html','_blank'); }
 
 function showMobileNotif(tds, ph, turb, devs) {
   document.getElementById('notif-card').style.display = 'flex';
   document.getElementById('notif-placeholder').style.display = 'none';
-  document.getElementById('notif-time').textContent = new Date().toTimeString().slice(0, 5);
+  document.getElementById('notif-time').textContent = new Date().toTimeString().slice(0,5);
   const parts = [];
-  if (devs.tds > 20) parts.push(`TDS +${devs.tds.toFixed(0)}%`);
-  if (devs.ph > 20) parts.push(`pH +${devs.ph.toFixed(0)}%`);
-  if (devs.turb > 20) parts.push(`Turbidity +${devs.turb.toFixed(0)}%`);
+  if(devs.tds>20) parts.push(`TDS +${devs.tds.toFixed(0)}%`);
+  if(devs.ph>20)  parts.push(`pH +${devs.ph.toFixed(0)}%`);
+  if(devs.turb>20) parts.push(`Turb +${devs.turb.toFixed(0)}%`);
   document.getElementById('notif-title').textContent = 'Water Quality Alert';
-  document.getElementById('notif-body').textContent = `${parts.join(', ')} deviation detected. TDS: ${tds} | pH: ${ph} | Turb: ${turb}`;
+  document.getElementById('notif-body').textContent = `${parts.join(', ')} deviation. TDS:${tds} pH:${ph} Turb:${turb}`;
 }
 
+/* ── WEBSOCKET STATUS ── */
 function setWsStatus(state) {
   const ind = document.getElementById('ws-indicator');
-  const text = document.getElementById('ws-status-text');
-  ind.className = 'ws-indicator';
-  if (state === 'connected') {
-    ind.classList.add('ws-connected');
-    text.textContent = 'Live';
-  } else if (state === 'disconnected') {
-    ind.classList.add('ws-disconnected');
-    text.textContent = 'Disconnected';
+  const txt = document.getElementById('ws-pill-text');
+  const wsLed = document.getElementById('ws-led');
+  const wsTxt = document.getElementById('ws-status-text');
+  ind.className = 'ws-pill';
+  if(state==='connected'){
+    ind.classList.add('ws-connected'); txt.textContent='● Live';
+    setLed(wsLed,'green'); wsTxt.textContent='Live';
+  } else if(state==='disconnected'){
+    ind.classList.add('ws-disconnected'); txt.textContent='● Disconnected';
+    setLed(wsLed,'red'); wsTxt.textContent='Offline';
   } else {
-    ind.classList.add('ws-connecting');
-    text.textContent = 'Connecting...';
+    ind.classList.add('ws-connecting'); txt.textContent='● Connecting...';
+    setLed(wsLed,'yellow'); wsTxt.textContent='Connecting';
   }
 }
 
+/* ── DASHBOARD UPDATE ── */
 function updateDashboard(tds, ph, turb) {
-  const t = new Date().toTimeString().slice(0, 8);
+  const t = new Date().toTimeString().slice(0,8);
+  if(!baseline){ baseline={tds,ph,turb}; addLog(`Baseline set — TDS:${tds} pH:${ph} Turb:${turb}`,'ok'); }
 
-  if (!baseline) {
-    baseline = { tds, ph, turb };
-    addLog(`Baseline set - TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'ok');
-  }
+  const bTds = baseline.tds||1, bPh = baseline.ph||1, bTurb = baseline.turb||1;
+  const devTds  = Math.abs(tds  - bTds)  * 100 / bTds;
+  const devPh   = Math.abs(ph   - bPh)   * 100 / bPh;
+  const devTurb = Math.abs(turb - bTurb) * 100 / bTurb;
 
-  const devTds = Math.abs(tds - baseline.tds) * 100 / baseline.tds;
-  const devPh = Math.abs(ph - baseline.ph) * 100 / baseline.ph;
-  const devTurb = Math.abs(turb - baseline.turb) * 100 / baseline.turb;
+  const isAlert = devTds>20 || devPh>20 || devTurb>20;
 
-  document.getElementById('tds-val').textContent = tds;
-  document.getElementById('ph-val').textContent = ph;
-  document.getElementById('turb-val').textContent = turb;
+  ['tds','ph','turb'].forEach((k,i)=>{
+    const val=[tds,ph,turb][i], dev=[devTds,devPh,devTurb][i];
+    const valEl = document.getElementById(`${k}-val`);
+    valEl.textContent = val;
+    valEl.className = 'metric-val' + (dev>20?' alert-val':'');
+    const devEl = document.getElementById(`${k}-dev`);
+    devEl.textContent = dev<1 ? 'baseline' : `+${dev.toFixed(1)}% dev`;
+    devEl.className = 'metric-dev ' + devClass(dev);
+    document.getElementById(`${k}-bar`).style.width = Math.min(dev*2,100)+'%';
+    setLed(document.getElementById(`${k}-led`), dev>20?'red':dev>10?'yellow':'green');
+  });
 
-  document.getElementById('tds-dev').textContent = devTds < 1 ? 'baseline' : `+${devTds.toFixed(1)}% dev`;
-  document.getElementById('ph-dev').textContent = devPh < 1 ? 'baseline' : `+${devPh.toFixed(1)}% dev`;
-  document.getElementById('turb-dev').textContent = devTurb < 1 ? 'baseline' : `+${devTurb.toFixed(1)}% dev`;
-
-  document.getElementById('tds-dev').className = 'metric-dev ' + devClass(devTds);
-  document.getElementById('ph-dev').className = 'metric-dev ' + devClass(devPh);
-  document.getElementById('turb-dev').className = 'metric-dev ' + devClass(devTurb);
-
-  document.getElementById('tds-bar').style.width = Math.min(devTds * 2, 100) + '%';
-  document.getElementById('ph-bar').style.width = Math.min(devPh * 2, 100) + '%';
-  document.getElementById('turb-bar').style.width = Math.min(devTurb * 2, 100) + '%';
-
-  const isAlert = devTds > 20 || devPh > 20 || devTurb > 20;
-  const pill = document.getElementById('status-pill');
-  if (isAlert) {
-    pill.className = 'status-pill status-alert';
-    document.getElementById('status-text').textContent = 'Quality Alert';
-    if (!lastAlertState) {
-      addLog(`ALERT - TDS: ${tds} | pH: ${ph} | Turb: ${turb}`, 'danger');
-      showMobileNotif(tds, ph, turb, { tds: devTds, ph: devPh, turb: devTurb });
-    }
+  const qualityLed = document.getElementById('quality-led');
+  const statusTxt  = document.getElementById('status-text');
+  if(isAlert){
+    setLed(qualityLed,'red'); statusTxt.textContent='Quality Alert';
+    if(!lastAlertState){ addLog(`ALERT — TDS:${tds} pH:${ph} Turb:${turb}`,'danger'); showMobileNotif(tds,ph,turb,{tds:devTds,ph:devPh,turb:devTurb}); }
   } else {
-    pill.className = 'status-pill status-ok';
-    document.getElementById('status-text').textContent = 'All Clear';
-    if (lastAlertState) addLog('Water quality returned to normal.', 'ok');
+    setLed(qualityLed,'green'); statusTxt.textContent='All Clear';
+    if(lastAlertState) addLog('Water quality returned to normal.','ok');
   }
   lastAlertState = isAlert;
 
-  labels.push(t);
-  tdsData.push(tds);
-  phData.push(ph);
-  turbData.push(turb);
-
-  if (labels.length > MAX_POINTS) {
-    labels.shift();
-    tdsData.shift();
-    phData.shift();
-    turbData.shift();
-  }
-
-  tdsChart.update('none');
-  phChart.update('none');
-  turbChart.update('none');
+  labels.push(t); tdsData.push(tds); phData.push(ph); turbData.push(turb);
+  if(labels.length>MAX_POINTS){ labels.shift(); tdsData.shift(); phData.shift(); turbData.shift(); }
+  tdsChart.update('none'); phChart.update('none'); turbChart.update('none');
 }
 
-let ws = null;
-let reconnectTimer = null;
-
-function connectWebSocket() {
+/* ── WEBSOCKET ── */
+let ws=null, reconnectTimer=null;
+function connectWebSocket(){
   setWsStatus('connecting');
   ws = new WebSocket(WS_URL);
-
-  ws.onopen = () => {
-    setWsStatus('connected');
-    addLog('Connected to ESP32 server.', 'ok');
-    clearTimeout(reconnectTimer);
-  };
-
-  ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      if (data.tds !== undefined) {
-        updateDashboard(data.tds, data.ph, data.turb);
-      }
-    } catch (e) {
-      console.warn('Bad message from server:', event.data);
-    }
-  };
-
-  ws.onclose = () => {
-    setWsStatus('disconnected');
-    addLog('Connection lost. Reconnecting in 3s...', 'warn');
-    reconnectTimer = setTimeout(connectWebSocket, RECONNECT_DELAY_MS);
-  };
-
-  ws.onerror = (err) => {
-    console.error('WebSocket error:', err);
-    ws.close();
-  };
+  ws.onopen = ()=>{ setWsStatus('connected'); addLog('Connected to ESP32 server.','ok'); clearTimeout(reconnectTimer); };
+  ws.onmessage = (e)=>{ try{ const d=JSON.parse(e.data); if(d.tds!==undefined) updateDashboard(d.tds,d.ph,d.turb); }catch(ex){ console.warn('Bad msg',e.data); }};
+  ws.onclose = ()=>{ setWsStatus('disconnected'); addLog('Connection lost. Reconnecting in 3s...','warn'); reconnectTimer=setTimeout(connectWebSocket,RECONNECT_DELAY_MS); };
+  ws.onerror = ()=>ws.close();
 }
 
-fetch('/history')
-  .then(res => res.json())
-  .then(data => {
-    data.forEach(d => {
-      updateDashboard(d.tds, d.ph, d.turb);
-    });
-  })
-  .catch(err => console.error('History load failed:', err));
-
+fetch('/history').then(r=>r.json()).then(data=>data.forEach(d=>updateDashboard(d.tds,d.ph,d.turb))).catch(()=>{});
 connectWebSocket();
 </script>
 </body>
